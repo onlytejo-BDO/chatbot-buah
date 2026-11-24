@@ -1,7 +1,9 @@
-
 import streamlit as st
 import re
+import random
 from rapidfuzz import process, fuzz
+
+from faq_tambahan import bangun_faq_tambahan, jawab_dinamis
 
 # ==================================================
 # 1. PENGATURAN HALAMAN
@@ -196,6 +198,39 @@ def normalisasi(teks):
 
 
 # ==================================================
+# 5B. INDEKS GABUNGAN (FAQ umum + variasi buah + FAQ tambahan)
+# ==================================================
+# Setiap pertanyaan menyimpan DAFTAR jawaban. Kalau ada lebih dari satu,
+# bot memilih acak supaya percakapan tidak monoton.
+
+def bangun_indeks():
+    indeks = {}
+
+    def tambah(kunci, daftar_jawaban):
+        tersimpan = indeks.setdefault(kunci, [])
+        for j in daftar_jawaban:
+            if j not in tersimpan:
+                tersimpan.append(j)
+
+    for k, v in faq.items():
+        tambah(normalisasi(k), [v])
+
+    for k, v in faq_buah_otomatis.items():
+        tambah(normalisasi(k), [v])
+
+    tambahan = bangun_faq_tambahan(database)
+    for k, v in tambahan.items():
+        tambah(k, v)
+
+    return indeks, len(tambahan)
+
+
+indeks_faq, jumlah_faq_tambahan = bangun_indeks()
+daftar_kunci = list(indeks_faq.keys())
+urutan_kunci = sorted(daftar_kunci, key=len, reverse=True)  # yang paling spesifik dulu
+
+
+# ==================================================
 # 6. FUNGSI MENCARI JAWABAN
 # ==================================================
 
@@ -205,21 +240,29 @@ def cari_jawaban(pertanyaan):
 
     jawaban_default = (
         "Maaf, aku belum memahami pertanyaan tersebut. "
-        "Coba gunakan kalimat yang berbeda ya! 😊"
+        "Coba gunakan kalimat yang berbeda ya! 😊 "
+        "(Ketik 'bantuan' untuk melihat apa saja yang bisa kutanyakan.)"
     )
 
-    # PRIORITAS 1: FAQ UMUM
-    for kata, informasi in sorted(
-        faq.items(),
-        key=lambda item: len(item[0]),
-        reverse=True
-    ):
-        pola = r"\b" + re.escape(normalisasi(kata)) + r"\b"
+    if not teks:
+        return jawaban_default, "Sumber: Respons otomatis"
 
-        if re.search(pola, teks):
-            return informasi, "Sumber: Database FAQ"
+    # PRIORITAS 0: FITUR DINAMIS (kalkulator, jam, tanggal, rekomendasi buah)
+    dinamis = jawab_dinamis(pertanyaan, teks, database)
+    if dinamis:
+        return dinamis, "Sumber: Fitur otomatis"
 
-    # PRIORITAS 2: NAMA BUAH YANG TEPAT
+    # PRIORITAS 1: COCOK PERSIS
+    if teks in indeks_faq:
+        return random.choice(indeks_faq[teks]), "Sumber: Database FAQ"
+
+    # PRIORITAS 2: FAQ TERKANDUNG DALAM KALIMAT (kunci terpanjang dulu)
+    teks_pad = f" {teks} "
+    for kunci in urutan_kunci:
+        if f" {kunci} " in teks_pad:
+            return random.choice(indeks_faq[kunci]), "Sumber: Database FAQ"
+
+    # PRIORITAS 3: NAMA BUAH YANG TEPAT
     nama_buah = list(database.keys())
 
     for buah in sorted(nama_buah, key=len, reverse=True):
@@ -228,7 +271,22 @@ def cari_jawaban(pertanyaan):
         if re.search(pola, teks):
             return database[buah], "Sumber: Database Buah"
 
-    # PRIORITAS 3: DETEKSI TYPO
+    # PRIORITAS 4: TYPO PADA PERTANYAAN FAQ
+    hasil_faq = process.extractOne(
+        teks,
+        daftar_kunci,
+        scorer=fuzz.token_sort_ratio,
+        score_cutoff=85
+    )
+
+    if hasil_faq:
+        kunci, skor, _ = hasil_faq
+        return (
+            random.choice(indeks_faq[kunci]),
+            f"Sumber: Database FAQ (kemiripan {skor:.0f}%)"
+        )
+
+    # PRIORITAS 5: DETEKSI TYPO NAMA BUAH
     kata_pertanyaan = teks.split()
     kandidat = []
 
@@ -264,7 +322,7 @@ def cari_jawaban(pertanyaan):
             f"Sumber: Database Buah (kemiripan {skor_terbaik:.0f}%)"
         )
 
-    # PRIORITAS 4: TIDAK DITEMUKAN
+    # PRIORITAS 6: TIDAK DITEMUKAN
     return jawaban_default, "Sumber: Respons otomatis"
 
 
@@ -299,9 +357,20 @@ with st.sidebar:
     st.write(f"Jumlah buah: {len(database)}")
     st.write(f"Jumlah FAQ umum: {len(faq)}")
     st.write(f"Variasi pertanyaan buah: {jumlah_faq_buah}")
+    st.write(f"FAQ tambahan: {jumlah_faq_tambahan}")
 
     st.write(
-        f"Total FAQ: {len(faq) + jumlah_faq_buah}"
+        f"Total pertanyaan terindeks: {len(indeks_faq)}"
+    )
+    st.write(
+        f"Total variasi jawaban: {sum(len(v) for v in indeks_faq.values())}"
+    )
+
+    st.divider()
+    st.caption(
+        "Coba: 'kasih pantun', 'fakta unik', 'ibu kota Jawa Barat', "
+        "'manfaat pisang', 'buah apa saja yang berwarna ungu', "
+        "'hitung 12 x 7', 'hari apa sekarang'"
     )
 
 
