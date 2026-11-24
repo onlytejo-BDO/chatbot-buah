@@ -5,6 +5,11 @@ from rapidfuzz import process, fuzz
 
 from faq_tambahan import bangun_faq_tambahan, jawab_dinamis
 
+try:
+    import anthropic
+except ImportError:
+    anthropic = None
+
 # ==================================================
 # 1. PENGATURAN HALAMAN
 # ==================================================
@@ -327,11 +332,75 @@ def cari_jawaban(pertanyaan):
 
 
 # ==================================================
+# 6B. MODE AI (LLM) SEBAGAI CADANGAN
+# ==================================================
+# API key disimpan di Streamlit Secrets (BUKAN di kode):
+#   ANTHROPIC_API_KEY = "sk-ant-..."
+
+MODEL_LLM = "claude-haiku-5-5"      # model cepat dan hemat biaya
+BATAS_AI_PER_SESI = 30              # lindungi kuota API dari penyalahgunaan
+JUMLAH_RIWAYAT = 10                 # berapa pesan terakhir yang diingat AI
+
+PROMPT_SISTEM = (
+    "Kamu adalah TemanAI, teman ngobrol berbahasa Indonesia yang ramah, "
+    "santai, dan membantu. Keahlian utamamu adalah buah-buahan, tetapi kamu "
+    "boleh membahas topik umum lain. Jawab ringkas (sekitar 2-5 kalimat) "
+    "kecuali diminta rinci. Pakai emoji secukupnya. Kalau tidak tahu atau "
+    "tidak yakin, katakan dengan jujur. Balas dalam bahasa yang dipakai pengguna."
+)
+
+
+def ambil_api_key():
+    try:
+        return st.secrets.get("ANTHROPIC_API_KEY")
+    except Exception:
+        return None
+
+
+api_key = ambil_api_key()
+llm_siap = bool(api_key) and anthropic is not None
+
+
+def jawab_llm_stream(riwayat):
+    """Generator teks untuk st.write_stream."""
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        with client.messages.stream(
+            model=MODEL_LLM,
+            max_tokens=600,
+            system=PROMPT_SISTEM,
+            messages=riwayat,
+        ) as stream:
+            for potongan in stream.text_stream:
+                yield potongan
+    except Exception:
+        yield (
+            "Maaf, otakku lagi gangguan sebentar 😅 "
+            "Coba lagi nanti ya, atau tanya hal lain."
+        )
+
+
+def susun_riwayat(pesan_baru):
+    """Ambil beberapa pesan terakhir + pesan baru, pastikan diawali 'user'."""
+    riwayat = [
+        {"role": m["role"], "content": m["content"]}
+        for m in st.session_state.messages[-JUMLAH_RIWAYAT:]
+    ]
+    while riwayat and riwayat[0]["role"] != "user":
+        riwayat.pop(0)
+    riwayat.append({"role": "user", "content": pesan_baru})
+    return riwayat
+
+
+# ==================================================
 # 7. CHAT HISTORY
 # ==================================================
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+if "jumlah_ai" not in st.session_state:
+    st.session_state.jumlah_ai = 0
 
 
 # ==================================================
@@ -367,6 +436,26 @@ with st.sidebar:
     )
 
     st.divider()
+
+    st.subheader("🧠 Mode AI")
+
+    if llm_siap:
+        selalu_ai = st.toggle(
+            "Selalu pakai AI",
+            value=False,
+            help="Mati: FAQ dulu, AI hanya jika FAQ tidak menemukan jawaban."
+        )
+        st.caption(
+            f"Pemakaian AI sesi ini: {st.session_state.jumlah_ai}/{BATAS_AI_PER_SESI}"
+        )
+    else:
+        selalu_ai = False
+        st.caption(
+            "AI belum aktif. Tambahkan ANTHROPIC_API_KEY di Secrets "
+            "dan 'anthropic' di requirements.txt."
+        )
+
+    st.divider()
     st.caption(
         "Coba: 'kasih pantun', 'fakta unik', 'ibu kota Jawa Barat', "
         "'manfaat pisang', 'buah apa saja yang berwarna ungu', "
@@ -399,6 +488,25 @@ pertanyaan = st.chat_input(
 if pertanyaan:
 
     jawaban, sumber = cari_jawaban(pertanyaan)
+
+    tidak_ketemu = (sumber == "Sumber: Respons otomatis")
+    ingin_ai = llm_siap and (selalu_ai or tidak_ketemu)
+    kuota_habis = st.session_state.jumlah_ai >= BATAS_AI_PER_SESI
+
+    if ingin_ai and not kuota_habis:
+        riwayat = susun_riwayat(pertanyaan)
+
+        with st.chat_message("user"):
+            st.write(pertanyaan)
+
+        with st.chat_message("assistant"):
+            jawaban = st.write_stream(jawab_llm_stream(riwayat))
+
+        st.session_state.jumlah_ai += 1
+        sumber = f"Sumber: AI ({MODEL_LLM})"
+
+    elif ingin_ai and kuota_habis and tidak_ketemu:
+        jawaban += " (Jatah AI untuk sesi ini sudah habis. Muat ulang halaman untuk memulai sesi baru.)"
 
     st.session_state.messages.append({
         "role": "user",
