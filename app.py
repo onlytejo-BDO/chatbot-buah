@@ -105,6 +105,53 @@ database = {
     "persimmon": "Persimmon atau kesemek berwarna oranye cerah 🟠"
 }
 
+# DATABASE FAQ
+faq = {
+    # SAPAAN
+    "halo": "Halo juga! 👋 Ada yang bisa aku bantu hari ini?",
+    "hai": "Hai! Senang bertemu denganmu. Mau ngobrol tentang apa?",
+    "hello": "Hello! Ada yang ingin kamu tanyakan?",
+    "hi": "Hi! Apa kabar hari ini?",
+    "assalamualaikum": "Waalaikumsalam! Semoga harimu menyenangkan 😊",
+    "selamat pagi": "Selamat pagi! Semoga aktivitasmu lancar ☀️",
+    "selamat siang": "Selamat siang! Jangan lupa istirahat ya.",
+    "selamat sore": "Selamat sore! Ada yang bisa aku bantu?",
+    "selamat malam": "Selamat malam! Semoga harimu menyenangkan 🌙",
+
+    # PERCAKAPAN UMUM
+    "apa kabar": "Aku baik-baik saja! Terima kasih sudah bertanya. Kamu bagaimana?",
+    "siapa kamu": "Aku adalah Chatbot Buah, asisten virtual yang siap menjawab pertanyaan tentang buah dan pengetahuan umum.",
+    "nama kamu": "Namaku Chatbot Buah! 🍎",
+    "kamu siapa": "Aku Chatbot Buah, teman ngobrol virtualmu!",
+    "terima kasih": "Sama-sama! Senang bisa membantu 😊",
+    "makasih": "Sama-sama bro! Ada pertanyaan lain?",
+    "dadah": "Dadah! Sampai bertemu lagi 👋",
+    "sampai jumpa": "Sampai jumpa lagi! Jangan lupa mampir ya.",
+    "bye": "Goodbye! Semoga harimu menyenangkan!",
+    "apa yang bisa kamu lakukan": "Aku bisa menjawab pertanyaan tentang buah-buahan dan memberikan informasi dasar seputar teknologi AI.",
+
+    # FAQ ARTIFICIAL INTELLIGENCE
+    "apa itu ai": "AI (Artificial Intelligence) atau kecerdasan buatan adalah teknologi yang memungkinkan komputer melakukan tugas yang biasanya membutuhkan kecerdasan manusia, seperti memahami bahasa, mengenali gambar, dan memecahkan masalah.",
+    "apa itu artificial intelligence": "Artificial Intelligence adalah teknologi yang membuat mesin mampu meniru beberapa kemampuan berpikir dan belajar manusia.",
+    "apa itu kecerdasan buatan": "Kecerdasan buatan adalah teknologi yang memungkinkan komputer melakukan tugas cerdas seperti memahami bahasa dan mengenali pola.",
+    "apa itu chatbot": "Chatbot adalah program komputer yang dirancang untuk berkomunikasi dengan manusia melalui percakapan teks atau suara.",
+    "apa itu chatgpt": "ChatGPT adalah AI buatan OpenAI yang dapat memahami dan menghasilkan teks, menjawab pertanyaan, membantu menulis, belajar, dan berbagai pekerjaan lainnya.",
+    "siapa pembuat chatgpt": "ChatGPT dikembangkan oleh OpenAI, perusahaan riset dan pengembangan kecerdasan buatan.",
+    "apa itu machine learning": "Machine Learning adalah cabang AI yang memungkinkan komputer mempelajari pola dari data untuk membuat prediksi atau keputusan.",
+    "apa itu deep learning": "Deep Learning adalah bagian dari Machine Learning yang menggunakan jaringan saraf tiruan berlapis untuk mempelajari pola kompleks.",
+    "apa itu neural network": "Neural Network adalah model komputasi yang terinspirasi dari cara kerja jaringan neuron pada otak manusia.",
+    "apa itu generative ai": "Generative AI adalah teknologi AI yang mampu membuat konten baru seperti teks, gambar, musik, video, dan kode.",
+    "apa itu prompt": "Prompt adalah instruksi atau pertanyaan yang diberikan kepada AI untuk menghasilkan jawaban tertentu.",
+    "apa itu prompt engineering": "Prompt Engineering adalah teknik menyusun instruksi agar AI menghasilkan jawaban yang lebih tepat dan sesuai kebutuhan.",
+    "apa manfaat ai": "AI dapat membantu pendidikan, kesehatan, bisnis, analisis data, otomatisasi pekerjaan, dan meningkatkan produktivitas.",
+    "apa kekurangan ai": "AI bisa menghasilkan informasi keliru, memiliki bias, bergantung pada kualitas data, dan tidak selalu memahami konteks seperti manusia.",
+    "apakah ai bisa berpikir": "AI dapat memproses informasi dan menghasilkan respons yang terlihat seperti penalaran manusia, tetapi cara kerjanya berbeda dari pikiran dan kesadaran manusia.",
+    "apakah ai berbahaya": "AI memiliki manfaat besar, tetapi juga memiliki risiko seperti penyebaran informasi salah, pelanggaran privasi, dan penyalahgunaan teknologi.",
+    "apakah ai bisa menggantikan manusia": "AI dapat mengotomatisasi beberapa pekerjaan, tetapi banyak pekerjaan tetap membutuhkan kreativitas, empati, tanggung jawab, dan penilaian manusia.",
+    "apa itu robot": "Robot adalah mesin yang dirancang untuk melakukan tugas tertentu secara otomatis atau dengan kendali manusia.",
+    "apa itu algoritma": "Algoritma adalah serangkaian langkah atau instruksi sistematis untuk menyelesaikan suatu masalah."
+}
+
 
 
 
