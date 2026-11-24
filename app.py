@@ -48,7 +48,7 @@ pertanyaan = st.chat_input("Tanyakan sesuatu tentang buah...")
 if pertanyaan:
 
     # PROSES JAWABAN
-    jawaban = "Maaf, Informasi tersebut belum tersedia yaa ."
+    jawaban = "Nanya wae anjing! ."
 
     for kata, informasi in database.items():
         if kata in pertanyaan.lower():
