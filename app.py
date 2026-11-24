@@ -94,7 +94,7 @@ database = {
 }
 
 
-}
+
 
 # MENYIMPAN HISTORY CHAT
 if "messages" not in st.session_state:
