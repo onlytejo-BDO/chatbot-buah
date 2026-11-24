@@ -1,18 +1,20 @@
 
 import streamlit as st
+import re
+from rapidfuzz import process, fuzz
 
 # ==================================================
 # 1. PENGATURAN HALAMAN
 # ==================================================
 
 st.set_page_config(
-    page_title="Chatbot Buah",
+    page_title="TemanAI - Chatbot Buah",
     page_icon="🍎",
     layout="centered"
 )
 
-st.title("🍎 Chatbot Pengetahuan Buah")
-st.caption("Asisten informasi buah-buahan dan teknologi AI")
+st.title("🍎 TemanAI")
+st.caption("Teman ngobrol dan asisten pengetahuan buah")
 
 
 # ==================================================
@@ -24,9 +26,7 @@ database = {
     "jeruk": "Jeruk berwarna oranye 🍊",
     "apel": "Apel berwarna merah 🍎",
     "anggur": "Anggur berwarna ungu 🍇",
-    "semangka": "Semangka memiliki daging berwarna merah 🍉",
-
-    # Buah Populer & Tropis
+    "semangka": "Semangka memiliki kulit hijau dan daging berwarna merah 🍉",
     "mangga": "Mangga matang berwarna kuning keoranyean 🥭",
     "nanas": "Nanas memiliki daging buah berwarna kuning 🍍",
     "stroberi": "Stroberi berwarna merah cerah 🍓",
@@ -39,8 +39,6 @@ database = {
     "kelapa": "Kelapa berkulit hijau atau cokelat dengan daging putih 🥥",
     "melon": "Melon memiliki daging berwarna hijau muda atau oranye 🍈",
     "bluberi": "Bluberi berwarna biru keunguan gelap 🫐",
-
-    # Buah Tropis & Lokal Indonesia
     "durian": "Durian berkulit hijau berduri dengan daging kuning 🟡",
     "rambutan": "Rambutan berkulit merah berambut dengan daging putih 🔴",
     "manggis": "Manggis berkulit ungu tua dengan daging putih bersih 🟣",
@@ -71,15 +69,11 @@ database = {
     "bidara": "Bidara berwarna hijau kekuningan 🟢",
     "sukun": "Sukun berkulit hijau dengan daging putih kekuningan 🟢",
     "labu": "Labu berwarna oranye cerah 🎃",
-
-    # Kelompok Sitrus
     "jeruk nipis": "Jeruk nipis berwarna hijau tua 🟢",
     "jeruk bali": "Jeruk bali memiliki daging berwarna merah muda 🩷",
     "jeruk mandarin": "Jeruk mandarin berwarna oranye terang 🍊",
     "yuzu": "Yuzu berwarna kuning cerah 🍋",
     "kumquat": "Kumquat berukuran kecil dan berwarna oranye 🍊",
-
-    # Kelompok Beri
     "rasberi": "Rasberi berwarna merah muda kemerahan 🔴",
     "blackberi": "Blackberi berwarna hitam mengilap ⚫",
     "kranberi": "Kranberi berwarna merah tua 🔴",
@@ -87,8 +81,6 @@ database = {
     "goji beri": "Goji beri berwarna merah keoranyean 🔴",
     "acai beri": "Acai beri berwarna ungu gelap 🟣",
     "elderberi": "Elderberi berwarna ungu kehitaman 🟣",
-
-    # Buah Subtropis & Timur Tengah
     "delima": "Delima berkulit merah dengan biji merah delima di dalamnya 🔴",
     "kurma": "Kurma matang berwarna cokelat tua 🟤",
     "tin": "Buah tin berwarna ungu kecokelatan atau hijau 🟣",
@@ -97,8 +89,6 @@ database = {
     "nektarin": "Nektarin berwarna merah kekuningan 🍑",
     "plum": "Plum berwarna ungu kemerahan gelap 🟣",
     "quince": "Quince berwarna kuning keemasan 🟡",
-
-    # Buah Eksotis
     "pepino": "Pepino berwarna kuning pucat dengan garis ungu 🟡",
     "feijoa": "Feijoa berwarna hijau dengan daging putih kekuningan 🟢",
     "kiwano": "Kiwano berkulit oranye berduri dengan daging hijau 🟠",
@@ -115,11 +105,10 @@ database = {
 
 
 # ==================================================
-# 3. DATABASE FAQ
+# 3. DATABASE FAQ UMUM
 # ==================================================
 
 faq = {
-    # SAPAAN
     "halo": "Halo juga! 👋 Ada yang bisa aku bantu hari ini?",
     "hai": "Hai! Senang bertemu denganmu. Mau ngobrol tentang apa?",
     "hello": "Hello! Ada yang ingin kamu tanyakan?",
@@ -129,76 +118,158 @@ faq = {
     "selamat siang": "Selamat siang! Jangan lupa istirahat ya.",
     "selamat sore": "Selamat sore! Ada yang bisa aku bantu?",
     "selamat malam": "Selamat malam! Semoga harimu menyenangkan 🌙",
-
-    # PERCAKAPAN UMUM
     "apa kabar": "Aku baik-baik saja! Terima kasih sudah bertanya. Kamu bagaimana?",
-    "siapa kamu": "Aku adalah Chatbot Buah, asisten virtual yang siap menjawab pertanyaan tentang buah dan pengetahuan umum.",
-    "nama kamu": "Namaku Chatbot Buah! 🍎",
-    "kamu siapa": "Aku Chatbot Buah, teman ngobrol virtualmu!",
+    "siapa kamu": "Aku adalah TemanAI, asisten virtual yang siap menemani percakapanmu. 😊",
+    "nama kamu": "Namaku TemanAI! 🍎",
+    "kamu siapa": "Aku TemanAI, teman ngobrol virtualmu!",
     "terima kasih": "Sama-sama! Senang bisa membantu 😊",
     "makasih": "Sama-sama! Ada pertanyaan lain?",
     "dadah": "Dadah! Sampai bertemu lagi 👋",
     "sampai jumpa": "Sampai jumpa lagi! Jangan lupa mampir ya.",
     "bye": "Goodbye! Semoga harimu menyenangkan!",
-    "apa yang bisa kamu lakukan": "Aku bisa menjawab pertanyaan tentang buah-buahan dan memberikan informasi dasar seputar teknologi AI.",
-
-    # FAQ ARTIFICIAL INTELLIGENCE
-    "apa itu ai": "AI (Artificial Intelligence) atau kecerdasan buatan adalah teknologi yang memungkinkan komputer melakukan tugas yang biasanya membutuhkan kecerdasan manusia, seperti memahami bahasa, mengenali gambar, dan memecahkan masalah.",
+    "apa yang bisa kamu lakukan": "Aku bisa menjawab pertanyaan tentang buah-buahan dan pengetahuan umum sederhana.",
+    "apa itu ai": "AI (Artificial Intelligence) atau kecerdasan buatan adalah teknologi yang memungkinkan komputer melakukan tugas yang biasanya membutuhkan kecerdasan manusia.",
     "apa itu artificial intelligence": "Artificial Intelligence adalah teknologi yang membuat mesin mampu meniru beberapa kemampuan berpikir dan belajar manusia.",
     "apa itu kecerdasan buatan": "Kecerdasan buatan adalah teknologi yang memungkinkan komputer melakukan tugas cerdas seperti memahami bahasa dan mengenali pola.",
     "apa itu chatbot": "Chatbot adalah program komputer yang dirancang untuk berkomunikasi dengan manusia melalui percakapan teks atau suara.",
-    "apa itu chatgpt": "ChatGPT adalah AI buatan OpenAI yang dapat memahami dan menghasilkan teks, menjawab pertanyaan, membantu menulis, belajar, dan berbagai pekerjaan lainnya.",
-    "siapa pembuat chatgpt": "ChatGPT dikembangkan oleh OpenAI, perusahaan riset dan pengembangan kecerdasan buatan.",
-    "apa itu machine learning": "Machine Learning adalah cabang AI yang memungkinkan komputer mempelajari pola dari data untuk membuat prediksi atau keputusan.",
-    "apa itu deep learning": "Deep Learning adalah bagian dari Machine Learning yang menggunakan jaringan saraf tiruan berlapis untuk mempelajari pola kompleks.",
-    "apa itu neural network": "Neural Network adalah model komputasi yang terinspirasi dari cara kerja jaringan neuron pada otak manusia.",
+    "apa itu chatgpt": "ChatGPT adalah AI buatan OpenAI yang dapat memahami dan menghasilkan teks.",
+    "siapa pembuat chatgpt": "ChatGPT dikembangkan oleh OpenAI.",
+    "apa itu machine learning": "Machine Learning adalah cabang AI yang memungkinkan komputer mempelajari pola dari data.",
+    "apa itu deep learning": "Deep Learning adalah bagian dari Machine Learning yang menggunakan jaringan saraf tiruan berlapis.",
+    "apa itu neural network": "Neural Network adalah model komputasi yang terinspirasi dari jaringan neuron pada otak manusia.",
     "apa itu generative ai": "Generative AI adalah teknologi AI yang mampu membuat konten baru seperti teks, gambar, musik, video, dan kode.",
-    "apa itu prompt": "Prompt adalah instruksi atau pertanyaan yang diberikan kepada AI untuk menghasilkan jawaban tertentu.",
-    "apa itu prompt engineering": "Prompt Engineering adalah teknik menyusun instruksi agar AI menghasilkan jawaban yang lebih tepat dan sesuai kebutuhan.",
-    "apa manfaat ai": "AI dapat membantu pendidikan, kesehatan, bisnis, analisis data, otomatisasi pekerjaan, dan meningkatkan produktivitas.",
-    "apa kekurangan ai": "AI bisa menghasilkan informasi keliru, memiliki bias, bergantung pada kualitas data, dan tidak selalu memahami konteks seperti manusia.",
-    "apakah ai bisa berpikir": "AI dapat memproses informasi dan menghasilkan respons yang terlihat seperti penalaran manusia, tetapi cara kerjanya berbeda dari pikiran dan kesadaran manusia.",
-    "apakah ai berbahaya": "AI memiliki manfaat besar, tetapi juga memiliki risiko seperti penyebaran informasi salah, pelanggaran privasi, dan penyalahgunaan teknologi.",
-    "apakah ai bisa menggantikan manusia": "AI dapat mengotomatisasi beberapa pekerjaan, tetapi banyak pekerjaan tetap membutuhkan kreativitas, empati, tanggung jawab, dan penilaian manusia.",
-    "apa itu robot": "Robot adalah mesin yang dirancang untuk melakukan tugas tertentu secara otomatis atau dengan kendali manusia.",
-    "apa itu algoritma": "Algoritma adalah serangkaian langkah atau instruksi sistematis untuk menyelesaikan suatu masalah."
+    "apa itu prompt": "Prompt adalah instruksi atau pertanyaan yang diberikan kepada AI.",
+    "apa manfaat ai": "AI dapat membantu pendidikan, kesehatan, bisnis, analisis data, dan otomatisasi pekerjaan.",
+    "apa kekurangan ai": "AI bisa menghasilkan informasi keliru, memiliki bias, dan bergantung pada kualitas data.",
+    "apakah ai berbahaya": "AI memiliki manfaat besar, tetapi juga memiliki risiko seperti penyebaran informasi salah dan penyalahgunaan teknologi.",
+    "apa itu robot": "Robot adalah mesin yang dirancang untuk melakukan tugas tertentu secara otomatis.",
+    "apa itu algoritma": "Algoritma adalah serangkaian langkah sistematis untuk menyelesaikan suatu masalah."
 }
 
 
 # ==================================================
-# 4. FUNGSI MENCARI JAWABAN
+# 4. VARIASI PERTANYAAN OTOMATIS
+# ==================================================
+
+template_pertanyaan = [
+    "apa warna {buah}",
+    "{buah} warnanya apa",
+    "buah {buah} berwarna apa",
+    "gimana warna {buah}",
+    "bagaimana warna {buah}",
+    "coba jelaskan warna {buah}",
+    "warna dari {buah} itu apa",
+    "aku mau tahu warna {buah}",
+    "lu tahu warna {buah}",
+    "kamu tahu warna {buah}",
+    "tolong jelaskan warna {buah}",
+    "sebutkan warna {buah}",
+    "warna buah {buah} seperti apa",
+    "kalau {buah} warnanya bagaimana",
+    "apa warna kulit {buah}",
+    "apa warna daging {buah}",
+    "jelaskan penampilan buah {buah}",
+    "ceritakan tentang warna {buah}",
+    "kasih tahu aku warna {buah}",
+    "menurut kamu {buah} warnanya apa"
+]
+
+faq_buah_otomatis = {}
+
+for nama_buah, informasi in database.items():
+    for template in template_pertanyaan:
+        pertanyaan_baru = template.format(buah=nama_buah)
+        faq_buah_otomatis[pertanyaan_baru] = informasi
+
+jumlah_faq_buah = len(faq_buah_otomatis)
+
+
+# ==================================================
+# 5. NORMALISASI TEKS
+# ==================================================
+
+def normalisasi(teks):
+    teks = teks.lower().strip()
+    teks = re.sub(r"[^\w\s]", " ", teks)
+    teks = re.sub(r"\s+", " ", teks)
+    return teks
+
+
+# ==================================================
+# 6. FUNGSI MENCARI JAWABAN
 # ==================================================
 
 def cari_jawaban(pertanyaan):
-    teks = pertanyaan.lower().strip()
 
-    # Default jika tidak ditemukan
-    jawaban = "Maaf, aku belum memahami pertanyaan tersebut. Coba gunakan kalimat yang berbeda ya! 😊"
-    sumber = "Sumber: Respons otomatis"
+    teks = normalisasi(pertanyaan)
 
-    # Periksa FAQ terlebih dahulu
+    jawaban_default = (
+        "Maaf, aku belum memahami pertanyaan tersebut. "
+        "Coba gunakan kalimat yang berbeda ya! 😊"
+    )
+
+    # PRIORITAS 1: FAQ UMUM
     for kata, informasi in sorted(
         faq.items(),
         key=lambda item: len(item[0]),
         reverse=True
     ):
-        if kata in teks:
+        pola = r"\b" + re.escape(normalisasi(kata)) + r"\b"
+
+        if re.search(pola, teks):
             return informasi, "Sumber: Database FAQ"
 
-    # Jika FAQ tidak ditemukan, periksa database buah
-    for kata, informasi in sorted(
-        database.items(),
-        key=lambda item: len(item[0]),
-        reverse=True
-    ):
-        if kata in teks:
-            return informasi, "Sumber: Database Buah"
+    # PRIORITAS 2: NAMA BUAH YANG TEPAT
+    nama_buah = list(database.keys())
 
-    return jawaban, sumber
+    for buah in sorted(nama_buah, key=len, reverse=True):
+        pola = r"\b" + re.escape(buah) + r"\b"
+
+        if re.search(pola, teks):
+            return database[buah], "Sumber: Database Buah"
+
+    # PRIORITAS 3: DETEKSI TYPO
+    kata_pertanyaan = teks.split()
+    kandidat = []
+
+    for ukuran in range(1, 4):
+        for i in range(len(kata_pertanyaan) - ukuran + 1):
+            potongan = " ".join(
+                kata_pertanyaan[i:i + ukuran]
+            )
+            kandidat.append(potongan)
+
+    buah_terbaik = None
+    skor_terbaik = 0
+
+    for potongan in kandidat:
+
+        hasil = process.extractOne(
+            potongan,
+            nama_buah,
+            scorer=fuzz.ratio,
+            score_cutoff=80
+        )
+
+        if hasil:
+            nama, skor, index = hasil
+
+            if skor > skor_terbaik:
+                buah_terbaik = nama
+                skor_terbaik = skor
+
+    if buah_terbaik:
+        return (
+            database[buah_terbaik],
+            f"Sumber: Database Buah (kemiripan {skor_terbaik:.0f}%)"
+        )
+
+    # PRIORITAS 4: TIDAK DITEMUKAN
+    return jawaban_default, "Sumber: Respons otomatis"
 
 
 # ==================================================
-# 5. MENYIMPAN HISTORY CHAT
+# 7. CHAT HISTORY
 # ==================================================
 
 if "messages" not in st.session_state:
@@ -206,13 +277,16 @@ if "messages" not in st.session_state:
 
 
 # ==================================================
-# 6. SIDEBAR
+# 8. SIDEBAR
 # ==================================================
 
 with st.sidebar:
-    st.header("💬 Chat History")
 
-    st.write(f"Total pesan: {len(st.session_state.messages)}")
+    st.header("💬 TemanAI")
+
+    st.write(
+        f"Total pesan: {len(st.session_state.messages)}"
+    )
 
     if st.button("🗑️ Hapus Percakapan"):
         st.session_state.messages = []
@@ -220,17 +294,25 @@ with st.sidebar:
 
     st.divider()
 
-    st.subheader("📚 Informasi Database")
+    st.subheader("📚 Database")
+
     st.write(f"Jumlah buah: {len(database)}")
-    st.write(f"Jumlah FAQ: {len(faq)}")
+    st.write(f"Jumlah FAQ umum: {len(faq)}")
+    st.write(f"Variasi pertanyaan buah: {jumlah_faq_buah}")
+
+    st.write(
+        f"Total FAQ: {len(faq) + jumlah_faq_buah}"
+    )
 
 
 # ==================================================
-# 7. MENAMPILKAN HISTORY CHAT
+# 9. MENAMPILKAN CHAT HISTORY
 # ==================================================
 
 for message in st.session_state.messages:
+
     with st.chat_message(message["role"]):
+
         st.write(message["content"])
 
         if message.get("source"):
@@ -238,28 +320,26 @@ for message in st.session_state.messages:
 
 
 # ==================================================
-# 8. INPUT DAN PROSES CHAT
+# 10. INPUT CHAT
 # ==================================================
 
-pertanyaan = st.chat_input("Tanyakan sesuatu tentang buah atau AI...")
+pertanyaan = st.chat_input(
+    "Tanyakan sesuatu tentang buah atau AI..."
+)
 
 if pertanyaan:
 
-    # Cari jawaban
     jawaban, sumber = cari_jawaban(pertanyaan)
 
-    # Simpan pertanyaan pengguna
     st.session_state.messages.append({
         "role": "user",
         "content": pertanyaan
     })
 
-    # Simpan jawaban chatbot
     st.session_state.messages.append({
         "role": "assistant",
         "content": jawaban,
         "source": sumber
     })
 
-    # Refresh tampilan
     st.rerun()
