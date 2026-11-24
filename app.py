@@ -103,7 +103,7 @@ database = {
     "star apple": "Star apple atau kenitu berwarna ungu atau hijau 🟣",
     "longan": "Longan atau lengkeng berwarna cokelat muda 🟤",
     "persimmon": "Persimmon atau kesemek berwarna oranye cerah 🟠"
-}
+
 
 # DATABASE FAQ
 faq = {
