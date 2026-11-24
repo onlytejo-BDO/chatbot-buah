@@ -104,7 +104,7 @@ database = {
     "longan": "Longan atau lengkeng berwarna cokelat muda 🟤",
     "persimmon": "Persimmon atau kesemek berwarna oranye cerah 🟠"
 
-
+}
 # DATABASE FAQ
 faq = {
     # SAPAAN
