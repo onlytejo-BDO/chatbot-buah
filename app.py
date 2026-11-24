@@ -1,23 +1,31 @@
 
 import streamlit as st
 
-# Pengaturan halaman
+# ==================================================
+# 1. PENGATURAN HALAMAN
+# ==================================================
+
 st.set_page_config(
     page_title="Chatbot Buah",
-    page_icon="🍎"
+    page_icon="🍎",
+    layout="centered"
 )
 
 st.title("🍎 Chatbot Pengetahuan Buah")
-st.caption("Asisten informasi buah-buahan")
+st.caption("Asisten informasi buah-buahan dan teknologi AI")
 
-# DATABASE
+
+# ==================================================
+# 2. DATABASE BUAH
+# ==================================================
+
 database = {
-  "pisang": "Pisang berwarna kuning 🍌",
+    "pisang": "Pisang berwarna kuning 🍌",
     "jeruk": "Jeruk berwarna oranye 🍊",
     "apel": "Apel berwarna merah 🍎",
     "anggur": "Anggur berwarna ungu 🍇",
     "semangka": "Semangka memiliki daging berwarna merah 🍉",
-    
+
     # Buah Populer & Tropis
     "mangga": "Mangga matang berwarna kuning keoranyean 🥭",
     "nanas": "Nanas memiliki daging buah berwarna kuning 🍍",
@@ -31,7 +39,7 @@ database = {
     "kelapa": "Kelapa berkulit hijau atau cokelat dengan daging putih 🥥",
     "melon": "Melon memiliki daging berwarna hijau muda atau oranye 🍈",
     "bluberi": "Bluberi berwarna biru keunguan gelap 🫐",
-    
+
     # Buah Tropis & Lokal Indonesia
     "durian": "Durian berkulit hijau berduri dengan daging kuning 🟡",
     "rambutan": "Rambutan berkulit merah berambut dengan daging putih 🔴",
@@ -64,14 +72,14 @@ database = {
     "sukun": "Sukun berkulit hijau dengan daging putih kekuningan 🟢",
     "labu": "Labu berwarna oranye cerah 🎃",
 
-    # Kelompok Sitrus (Jeruk-jerukan)
+    # Kelompok Sitrus
     "jeruk nipis": "Jeruk nipis berwarna hijau tua 🟢",
     "jeruk bali": "Jeruk bali memiliki daging berwarna merah muda 🩷",
     "jeruk mandarin": "Jeruk mandarin berwarna oranye terang 🍊",
     "yuzu": "Yuzu berwarna kuning cerah 🍋",
     "kumquat": "Kumquat berukuran kecil dan berwarna oranye 🍊",
 
-    # Kelompok Beri (Berries)
+    # Kelompok Beri
     "rasberi": "Rasberi berwarna merah muda kemerahan 🔴",
     "blackberi": "Blackberi berwarna hitam mengilap ⚫",
     "kranberi": "Kranberi berwarna merah tua 🔴",
@@ -90,7 +98,7 @@ database = {
     "plum": "Plum berwarna ungu kemerahan gelap 🟣",
     "quince": "Quince berwarna kuning keemasan 🟡",
 
-    # Buah Eksotis Mancanegara Lainnya
+    # Buah Eksotis
     "pepino": "Pepino berwarna kuning pucat dengan garis ungu 🟡",
     "feijoa": "Feijoa berwarna hijau dengan daging putih kekuningan 🟢",
     "kiwano": "Kiwano berkulit oranye berduri dengan daging hijau 🟠",
@@ -100,12 +108,16 @@ database = {
     "tamarillo": "Tamarillo atau terong belanda berwarna merah keunguan 🔴",
     "miracle fruit": "Miracle fruit berwarna merah kecil 🔴",
     "mangosteen": "Mangosteen atau manggis berwarna ungu gelap 🟣",
-    "star apple": "Star apple atau kenitu berwarna ungu atau hijau 🟣",
+    "star apple": "Star Apple atau kenitu berwarna ungu atau hijau 🟣",
     "longan": "Longan atau lengkeng berwarna cokelat muda 🟤",
     "persimmon": "Persimmon atau kesemek berwarna oranye cerah 🟠"
-
 }
-# DATABASE FAQ
+
+
+# ==================================================
+# 3. DATABASE FAQ
+# ==================================================
+
 faq = {
     # SAPAAN
     "halo": "Halo juga! 👋 Ada yang bisa aku bantu hari ini?",
@@ -124,7 +136,7 @@ faq = {
     "nama kamu": "Namaku Chatbot Buah! 🍎",
     "kamu siapa": "Aku Chatbot Buah, teman ngobrol virtualmu!",
     "terima kasih": "Sama-sama! Senang bisa membantu 😊",
-    "makasih": "Sama-sama bro! Ada pertanyaan lain?",
+    "makasih": "Sama-sama! Ada pertanyaan lain?",
     "dadah": "Dadah! Sampai bertemu lagi 👋",
     "sampai jumpa": "Sampai jumpa lagi! Jangan lupa mampir ya.",
     "bye": "Goodbye! Semoga harimu menyenangkan!",
@@ -153,13 +165,50 @@ faq = {
 }
 
 
+# ==================================================
+# 4. FUNGSI MENCARI JAWABAN
+# ==================================================
+
+def cari_jawaban(pertanyaan):
+    teks = pertanyaan.lower().strip()
+
+    # Default jika tidak ditemukan
+    jawaban = "Maaf, aku belum memahami pertanyaan tersebut. Coba gunakan kalimat yang berbeda ya! 😊"
+    sumber = "Sumber: Respons otomatis"
+
+    # Periksa FAQ terlebih dahulu
+    for kata, informasi in sorted(
+        faq.items(),
+        key=lambda item: len(item[0]),
+        reverse=True
+    ):
+        if kata in teks:
+            return informasi, "Sumber: Database FAQ"
+
+    # Jika FAQ tidak ditemukan, periksa database buah
+    for kata, informasi in sorted(
+        database.items(),
+        key=lambda item: len(item[0]),
+        reverse=True
+    ):
+        if kata in teks:
+            return informasi, "Sumber: Database Buah"
+
+    return jawaban, sumber
 
 
-# MENYIMPAN HISTORY CHAT
+# ==================================================
+# 5. MENYIMPAN HISTORY CHAT
+# ==================================================
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# SIDEBAR
+
+# ==================================================
+# 6. SIDEBAR
+# ==================================================
+
 with st.sidebar:
     st.header("💬 Chat History")
 
@@ -169,7 +218,17 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-# MENAMPILKAN HISTORY
+    st.divider()
+
+    st.subheader("📚 Informasi Database")
+    st.write(f"Jumlah buah: {len(database)}")
+    st.write(f"Jumlah FAQ: {len(faq)}")
+
+
+# ==================================================
+# 7. MENAMPILKAN HISTORY CHAT
+# ==================================================
+
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
@@ -177,45 +236,30 @@ for message in st.session_state.messages:
         if message.get("source"):
             st.caption(message["source"])
 
-# INPUT CHAT
-pertanyaan = st.chat_input("Tanyakan sesuatu tentang buah...")
+
+# ==================================================
+# 8. INPUT DAN PROSES CHAT
+# ==================================================
+
+pertanyaan = st.chat_input("Tanyakan sesuatu tentang buah atau AI...")
 
 if pertanyaan:
 
-    
-# PROSES JAWABAN
-teks = pertanyaan.lower().strip()
+    # Cari jawaban
+    jawaban, sumber = cari_jawaban(pertanyaan)
 
-jawaban = "Maaf, aku belum memahami pertanyaan tersebut. Coba gunakan kalimat yang berbeda ya! 😊"
-sumber = "Sumber: Respons otomatis"
-
-# PRIORITAS 1: CEK FAQ
-for kata, informasi in sorted(faq.items(), key=lambda item: len(item[0]), reverse=True):
-    if kata in teks:
-        jawaban = informasi
-        sumber = "Sumber: Database FAQ"
-        break
-
-# PRIORITAS 2: CEK DATABASE BUAH
-else:
-    for kata, informasi in sorted(database.items(), key=lambda item: len(item[0]), reverse=True):
-        if kata in teks:
-            jawaban = informasi
-            sumber = "Sumber: Database Buah"
-            break
-
-
-    # SIMPAN PERTANYAAN
+    # Simpan pertanyaan pengguna
     st.session_state.messages.append({
         "role": "user",
         "content": pertanyaan
     })
 
-    # SIMPAN JAWABAN
+    # Simpan jawaban chatbot
     st.session_state.messages.append({
         "role": "assistant",
         "content": jawaban,
-        "source": "Sumber: Database Buah"
+        "source": sumber
     })
 
+    # Refresh tampilan
     st.rerun()
