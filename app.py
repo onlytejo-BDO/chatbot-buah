@@ -182,13 +182,28 @@ pertanyaan = st.chat_input("Tanyakan sesuatu tentang buah...")
 
 if pertanyaan:
 
-    # PROSES JAWABAN
-    jawaban = "Nanya wae anjing! ."
+    
+# PROSES JAWABAN
+teks = pertanyaan.lower().strip()
 
-    for kata, informasi in database.items():
-        if kata in pertanyaan.lower():
+jawaban = "Maaf, aku belum memahami pertanyaan tersebut. Coba gunakan kalimat yang berbeda ya! 😊"
+sumber = "Sumber: Respons otomatis"
+
+# PRIORITAS 1: CEK FAQ
+for kata, informasi in sorted(faq.items(), key=lambda item: len(item[0]), reverse=True):
+    if kata in teks:
+        jawaban = informasi
+        sumber = "Sumber: Database FAQ"
+        break
+
+# PRIORITAS 2: CEK DATABASE BUAH
+else:
+    for kata, informasi in sorted(database.items(), key=lambda item: len(item[0]), reverse=True):
+        if kata in teks:
             jawaban = informasi
+            sumber = "Sumber: Database Buah"
             break
+
 
     # SIMPAN PERTANYAAN
     st.session_state.messages.append({
