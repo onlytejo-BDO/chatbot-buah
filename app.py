@@ -12,16 +12,11 @@ st.caption("Asisten informasi buah-buahan")
 
 # DATABASE
 database = {
-    # DATABASE
-database = {
-    # Data Awal
     "pisang": "Pisang berwarna kuning 🍌",
     "jeruk": "Jeruk berwarna oranye 🍊",
     "apel": "Apel berwarna merah 🍎",
     "anggur": "Anggur berwarna ungu 🍇",
     "semangka": "Semangka memiliki daging berwarna merah 🍉",
-    
-    # Buah Populer & Tropis
     "mangga": "Mangga matang berwarna kuning keoranyean 🥭",
     "nanas": "Nanas memiliki daging buah berwarna kuning 🍍",
     "stroberi": "Stroberi berwarna merah cerah 🍓",
@@ -34,8 +29,6 @@ database = {
     "kelapa": "Kelapa berkulit hijau atau cokelat dengan daging putih 🥥",
     "melon": "Melon memiliki daging berwarna hijau muda atau oranye 🍈",
     "bluberi": "Bluberi berwarna biru keunguan gelap 🫐",
-    
-    # Buah Tropis & Lokal Indonesia
     "durian": "Durian berkulit hijau berduri dengan daging kuning 🟡",
     "rambutan": "Rambutan berkulit merah berambut dengan daging putih 🔴",
     "manggis": "Manggis berkulit ungu tua dengan daging putih bersih 🟣",
@@ -66,15 +59,11 @@ database = {
     "bidara": "Bidara berwarna hijau kekuningan 🟢",
     "sukun": "Sukun berkulit hijau dengan daging putih kekuningan 🟢",
     "labu": "Labu berwarna oranye cerah 🎃",
-
-    # Kelompok Sitrus (Jeruk-jerukan)
     "jeruk nipis": "Jeruk nipis berwarna hijau tua 🟢",
     "jeruk bali": "Jeruk bali memiliki daging berwarna merah muda 🩷",
     "jeruk mandarin": "Jeruk mandarin berwarna oranye terang 🍊",
     "yuzu": "Yuzu berwarna kuning cerah 🍋",
     "kumquat": "Kumquat berukuran kecil dan berwarna oranye 🍊",
-
-    # Kelompok Beri (Berries)
     "rasberi": "Rasberi berwarna merah muda kemerahan 🔴",
     "blackberi": "Blackberi berwarna hitam mengilap ⚫",
     "kranberi": "Kranberi berwarna merah tua 🔴",
@@ -82,8 +71,6 @@ database = {
     "goji beri": "Goji beri berwarna merah keoranyean 🔴",
     "acai beri": "Acai beri berwarna ungu gelap 🟣",
     "elderberi": "Elderberi berwarna ungu kehitaman 🟣",
-
-    # Buah Subtropis & Timur Tengah
     "delima": "Delima berkulit merah dengan biji merah delima di dalamnya 🔴",
     "kurma": "Kurma matang berwarna cokelat tua 🟤",
     "tin": "Buah tin berwarna ungu kecokelatan atau hijau 🟣",
@@ -92,8 +79,6 @@ database = {
     "nektarin": "Nektarin berwarna merah kekuningan 🍑",
     "plum": "Plum berwarna ungu kemerahan gelap 🟣",
     "quince": "Quince berwarna kuning keemasan 🟡",
-
-    # Buah Eksotis Mancanegara Lainnya
     "pepino": "Pepino berwarna kuning pucat dengan garis ungu 🟡",
     "feijoa": "Feijoa berwarna hijau dengan daging putih kekuningan 🟢",
     "kiwano": "Kiwano berkulit oranye berduri dengan daging hijau 🟠",
