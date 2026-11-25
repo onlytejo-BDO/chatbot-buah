@@ -6,9 +6,11 @@ from rapidfuzz import process, fuzz
 from faq_tambahan import bangun_faq_tambahan, jawab_dinamis
 
 try:
-    import anthropic
+    from google import genai
+    from google.genai import types
 except ImportError:
-    anthropic = None
+    genai = None
+    types = None
 
 # ==================================================
 # 1. PENGATURAN HALAMAN
@@ -345,9 +347,11 @@ def cari_jawaban(pertanyaan):
 # 6B. MODE AI (LLM) SEBAGAI CADANGAN
 # ==================================================
 # API key disimpan di Streamlit Secrets (BUKAN di kode):
-#   ANTHROPIC_API_KEY = "sk-ant-..."
+#   GEMINI_API_KEY = "AIza..."
+# Opsional, untuk memilih model sendiri:
+#   GEMINI_MODEL = "nama-model-dari-halaman-Rate-Limit"
 
-MODEL_LLM = "claude-haiku-5-5"      # model cepat dan hemat biaya
+MODEL_BAWAAN = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-4-hydrogen"]
 BATAS_AI_PER_SESI = 30              # lindungi kuota API dari penyalahgunaan
 JUMLAH_RIWAYAT = 10                 # berapa pesan terakhir yang diingat AI
 
@@ -360,34 +364,58 @@ PROMPT_SISTEM = (
 )
 
 
-def ambil_api_key():
+def ambil_secret(nama):
     try:
-        return st.secrets.get("ANTHROPIC_API_KEY")
+        return st.secrets.get(nama)
     except Exception:
         return None
 
 
-api_key = ambil_api_key()
-llm_siap = bool(api_key) and anthropic is not None
+api_key = ambil_secret("GEMINI_API_KEY")
+llm_siap = bool(api_key) and genai is not None
+
+model_pilihan = ambil_secret("GEMINI_MODEL")
+DAFTAR_MODEL = [model_pilihan] if model_pilihan else MODEL_BAWAAN
 
 
 def jawab_llm_stream(riwayat):
-    """Generator teks untuk st.write_stream."""
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        with client.messages.stream(
-            model=MODEL_LLM,
-            max_tokens=600,
-            system=PROMPT_SISTEM,
-            messages=riwayat,
-        ) as stream:
-            for potongan in stream.text_stream:
-                yield potongan
-    except Exception:
-        yield (
-            "Maaf, otakku lagi gangguan sebentar 😅 "
-            "Coba lagi nanti ya, atau tanya hal lain."
+    """Generator teks untuk st.write_stream. Mencoba model satu per satu."""
+    client = genai.Client(api_key=api_key)
+
+    isi = [
+        types.Content(
+            role="user" if m["role"] == "user" else "model",
+            parts=[types.Part(text=m["content"])]
         )
+        for m in riwayat
+    ]
+
+    konfigurasi = types.GenerateContentConfig(
+        system_instruction=PROMPT_SISTEM,
+        max_output_tokens=1500,
+    )
+
+    for model in DAFTAR_MODEL:
+        sudah_keluar = False
+        try:
+            for potongan in client.models.generate_content_stream(
+                model=model, contents=isi, config=konfigurasi
+            ):
+                if potongan.text:
+                    sudah_keluar = True
+                    yield potongan.text
+            if sudah_keluar:
+                st.session_state.model_terpakai = model
+                return
+        except Exception:
+            if sudah_keluar:
+                return
+            continue  # coba model berikutnya
+
+    yield (
+        "Maaf, otakku lagi gangguan sebentar 😅 "
+        "Coba lagi nanti ya, atau tanya hal lain."
+    )
 
 
 def susun_riwayat(pesan_baru):
@@ -460,14 +488,14 @@ with st.sidebar:
         )
     else:
         selalu_ai = False
-        if anthropic is None:
+        if genai is None:
             st.caption(
-                "AI belum aktif: library 'anthropic' belum terpasang. "
-                "Tambahkan 'anthropic' di requirements.txt lalu Reboot app."
+                "AI belum aktif: library 'google-genai' belum terpasang. "
+                "Tambahkan 'google-genai' di requirements.txt lalu Reboot app."
             )
         else:
             st.caption(
-                "AI belum aktif: ANTHROPIC_API_KEY belum ditemukan. "
+                "AI belum aktif: GEMINI_API_KEY belum ditemukan. "
                 "Isi di Manage app > Settings > Secrets lalu Reboot app."
             )
 
@@ -519,7 +547,7 @@ if pertanyaan:
             jawaban = st.write_stream(jawab_llm_stream(riwayat))
 
         st.session_state.jumlah_ai += 1
-        sumber = f"Sumber: AI ({MODEL_LLM})"
+        sumber = f"Sumber: AI ({st.session_state.get('model_terpakai', 'Gemini')})"
 
     elif ingin_ai and kuota_habis and tidak_ketemu:
         jawaban += " (Jatah AI untuk sesi ini sudah habis. Muat ulang halaman untuk memulai sesi baru.)"
