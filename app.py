@@ -305,13 +305,23 @@ def cari_jawaban(pertanyaan):
     buah_terbaik = None
     skor_terbaik = 0
 
+    kata_umum = {
+        "kenapa", "mengapa", "bagaimana", "apakah", "dimana", "kapan", "siapa",
+        "berapa", "dengan", "untuk", "karena", "tentang", "jelaskan", "ceritakan",
+        "langit", "tolong", "bisa", "boleh", "kasih", "tahu", "bukan", "sebutkan",
+    }
+
     for potongan in kandidat:
+
+        # lewati potongan pendek atau kata umum agar tidak salah cocok
+        if len(potongan) < 5 or potongan in kata_umum:
+            continue
 
         hasil = process.extractOne(
             potongan,
             nama_buah,
             scorer=fuzz.ratio,
-            score_cutoff=80
+            score_cutoff=85
         )
 
         if hasil:
@@ -450,10 +460,16 @@ with st.sidebar:
         )
     else:
         selalu_ai = False
-        st.caption(
-            "AI belum aktif. Tambahkan ANTHROPIC_API_KEY di Secrets "
-            "dan 'anthropic' di requirements.txt."
-        )
+        if anthropic is None:
+            st.caption(
+                "AI belum aktif: library 'anthropic' belum terpasang. "
+                "Tambahkan 'anthropic' di requirements.txt lalu Reboot app."
+            )
+        else:
+            st.caption(
+                "AI belum aktif: ANTHROPIC_API_KEY belum ditemukan. "
+                "Isi di Manage app > Settings > Secrets lalu Reboot app."
+            )
 
     st.divider()
     st.caption(
